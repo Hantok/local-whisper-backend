@@ -1,6 +1,6 @@
 ## Local Whisper Backend (large-v3-turbo)
 
-Run `whisper_server.py` to host an OpenAI-compatible `/v1/audio/transcriptions` endpoint powered by [faster-whisper](https://github.com/SYSTRAN/faster-whisper). It defaults to the `large-v3-turbo` model.
+Run `whisper_server.py` to self-host an OpenAI-compatible `/v1/audio/transcriptions` endpoint powered by [faster-whisper](https://github.com/SYSTRAN/faster-whisper). It defaults to the `large-v3-turbo` model, deploys on any machine in a few commands, and can be dropped into n8n or other workflows without code changes.
 
 ### Install dependencies
 
@@ -70,6 +70,19 @@ Your YouTube transcription endpoint will now fall back to the self-hosted Whispe
    systemctl status whisper-local-api.service
    journalctl -u whisper-local-api.service -f
    ```
+
+### Use with n8n
+
+The server is OpenAI-compatible, so you can drop it into n8n’s “OpenAI Audio Transcription” (or HTTP Request) node by pointing the base URL to your instance:
+
+- Base URL: `http://<your-host>:9000/v1`
+- Endpoint: `/audio/transcriptions`
+- Model: `large-v3-turbo` (or whichever you’ve preloaded)
+- Auth: none required (unless you front it with your own proxy)
+
+Example n8n configuration:
+
+![n8n configuration screenshot](n8n-configuration.jpeg)
 
 ### Notes and troubleshooting
 
