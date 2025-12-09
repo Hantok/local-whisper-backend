@@ -1,0 +1,16 @@
+[Unit]
+Description=Local Whisper API (faster-whisper via uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+# Replace ubuntu with the user that owns the repository/venv.
+User=ubuntu
+WorkingDirectory=/mnt/ssd/whisper-local-api
+EnvironmentFile=-/etc/default/whisper-local-api
+ExecStart=/bin/bash /mnt/ssd/whisper-local-api/run_server.sh large
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

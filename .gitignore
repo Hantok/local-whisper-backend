@@ -1,0 +1,19 @@
+# Virtual environments
+.venv/
+
+# Python cache/metadata
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+
+# Model and download caches
+.cache/
+
+# Logs and artifacts
+*.log
+
+# OS cruft
+.DS_Store
