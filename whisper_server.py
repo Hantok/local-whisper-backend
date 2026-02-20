@@ -31,6 +31,7 @@ _MODEL_LOCK = threading.Lock()
 
 MODEL_ALIASES = {
     "large-v3-turbo": "large-v3",
+    "whisper-1": DEFAULT_MODEL_NAME.lower(),
 }
 
 class ModelNotAvailableError(RuntimeError):
