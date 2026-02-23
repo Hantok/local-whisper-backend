@@ -98,3 +98,16 @@ Tests live in `tests/test_whisper_server.py` and use the bundled `test-speech.mp
 source .venv/bin/activate
 pytest
 ```
+
+### OpenClaw Skill (ClawHub)
+
+If you use OpenClaw and want one-command agent setup, use the packaged skill from this repo:
+
+- Skill source: `openclaw-skill/whisper-local-api/`
+- Privacy focused: Provides 100% offline, highly-accurate `faster-whisper` transcription for agent voice commands without cloud telemetry
+
+Package command to deploy to ClawHub:
+```bash
+python ~/.npm-global/lib/node_modules/openclaw/skills/skill-creator/scripts/package_skill.py openclaw-skill/whisper-local-api
+```
+This generates a `.skill` bundle you can securely upload.
