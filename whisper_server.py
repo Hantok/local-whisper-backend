@@ -80,10 +80,12 @@ def get_model(model_name: str) -> WhisperModel:
                     WHISPER_DEVICE,
                     compute_type,
                 )
+                cpu_threads = int(os.getenv("LOCAL_WHISPER_THREADS", str(os.cpu_count() or 4)))
                 model = WhisperModel(
                     normalized_name,
                     device=WHISPER_DEVICE,
                     compute_type=compute_type,
+                    cpu_threads=cpu_threads,
                 )
                 _MODEL_CACHE[normalized_name] = model
                 return model
@@ -112,13 +114,19 @@ def get_model(model_name: str) -> WhisperModel:
         raise RuntimeError(message)
 
 
-def run_transcription(audio_path: Path, model_name: str) -> Tuple[str, List[Dict]]:
+def run_transcription(audio_path: Path, model_name: str, language: str | None = None) -> Tuple[str, List[Dict]]:
     model = get_model(model_name)
-    segments_generator, _info = model.transcribe(
-        str(audio_path),
-        beam_size=WHISPER_BEAM_SIZE,
-        vad_filter=True,
-    )
+    
+    kwargs = {
+        "beam_size": WHISPER_BEAM_SIZE,
+        "vad_filter": True,
+        # Disabling prevents hallucination stalls on background noise in long audio
+        "condition_on_previous_text": False,
+    }
+    if language:
+        kwargs["language"] = language
+
+    segments_generator, _info = model.transcribe(str(audio_path), **kwargs)
     segments: List[Dict] = []
     collected_text: List[str] = []
     for index, segment in enumerate(segments_generator):
@@ -148,6 +156,7 @@ async def create_transcription(
     request: Request,
     file: UploadFile = File(...),
     model: str | None = Form(None, alias="model"),
+    language: str | None = Form(None, alias="language"),
 ):
     if not file.filename:
         raise HTTPException(status_code=400, detail="Uploaded file must include a filename.")
@@ -176,7 +185,7 @@ async def create_transcription(
 
     try:
         start_time = time.monotonic()
-        full_text, segments = run_transcription(temp_path, selected_model)
+        full_text, segments = run_transcription(temp_path, selected_model, language)
         elapsed = time.monotonic() - start_time
         preview = (full_text or "")[:200]
         logger.info(

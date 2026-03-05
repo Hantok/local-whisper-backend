@@ -4,6 +4,20 @@ Run `whisper_server.py` to self-host an OpenAI-compatible `/v1/audio/transcripti
 
 ### Install dependencies
 
+Select the installation method for your architecture:
+
+#### 🍎 macOS (ARM64 / Apple Silicon)
+
+**Option A: Conda (Recommended)**
+Handles architecture-specific libraries (FFmpeg) automatically.
+```bash
+conda create -y -n whisper-env python=3.12 ffmpeg
+conda activate whisper-env
+pip install -r requirements.txt
+```
+
+**Option B: Standard `.venv`**
+*Note: If you get "architecture mismatch" errors, ensure your FFmpeg is installed via ARM64 Homebrew (`/opt/homebrew`).*
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -11,22 +25,44 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### Optoinal: Install FFmpeg development libraries (for audio format support)
-
+#### 🖥️ Linux/Windows/Intel Mac
 ```bash
-sudo apt install pkg-config libavdevice-dev libavfilter-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev libavcodec-dev
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
 ### Start the Whisper server
 
+Choose the optimal settings based on your hardware:
+
+#### 🍎 Apple Silicon (M1/M2/M3)
 ```bash
-export LOCAL_WHISPER_MODEL=large-v3-turbo          # optional, defaults to large-v3-turbo
-export LOCAL_WHISPER_DEVICE=auto                   # e.g. cuda, cpu, auto
-export LOCAL_WHISPER_COMPUTE_TYPE=float16          # use int8/int8_float32 on CPU
+export LOCAL_WHISPER_MODEL=large-v3-turbo
+export LOCAL_WHISPER_DEVICE=cpu
+export LOCAL_WHISPER_COMPUTE_TYPE=int8
+export LOCAL_WHISPER_BEAM_SIZE=1
 uvicorn whisper_server:app --host 0.0.0.0 --port 9000
 ```
 
-If a compute type is unsupported (for example `float16` on CPU), the server automatically retries with int8- or auto-based modes so transcriptions continue working. The service also aliases `large-v3-turbo` to `large-v3` because faster-whisper does not provide the OpenAI naming variant.
+#### 🟢 NVIDIA GPU (x86_64)
+```bash
+export LOCAL_WHISPER_MODEL=large-v3-turbo
+export LOCAL_WHISPER_DEVICE=cuda
+export LOCAL_WHISPER_COMPUTE_TYPE=float16
+uvicorn whisper_server:app --host 0.0.0.0 --port 9000
+```
+
+#### 🖥️ Generic CPU (x86_64)
+```bash
+export LOCAL_WHISPER_MODEL=large-v3-turbo
+export LOCAL_WHISPER_DEVICE=cpu
+export LOCAL_WHISPER_COMPUTE_TYPE=int8_float32
+uvicorn whisper_server:app --host 0.0.0.0 --port 9000
+```
+
+If a compute type is unsupported (for example `float16` on CPU), the server automatically retries with `int8` or `auto` based modes. The service also aliases `large-v3-turbo` to `large-v3` because `faster-whisper` uses the base model name for the turbo weights.
 
 The server exposes:
 
